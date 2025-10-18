@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>نظام إدارة السلامة والصحة المهنية | مسار السلامة</title>
+
+  <!-- أنماط المشروع الموحدة -->
+  <link rel="stylesheet" href="css/main.css"/>
+  <link rel="stylesheet" href="css/components.css"/>
+  <link rel="stylesheet" href="css/responsive.css"/>
+
+
+<style>
+@keyframes spin {to{transform:rotate(360deg)}}
+</style>
+
+</head>
+<body data-page="safety">
+  <!-- شاشة حجب كاملة أثناء الإرسال -->
+<div id="blockingOverlay" style="
+  position:fixed; inset:0; background:rgba(0,0,0,.5);
+  display:none; align-items:center; justify-content:center; z-index:9999">
+  <div style="background:#fff; padding:22px 26px; border-radius:14px; min-width:260px; text-align:center; box-shadow:0 10px 40px rgba(0,0,0,.25)">
+    <div class="spinner" style="
+      width:40px; height:40px; margin:0 auto 12px; border:4px solid #e5e7eb; border-top-color:#667eea; border-radius:50%; animation:spin 1s linear infinite;"></div>
+    <div id="blockingOverlayText" style="font-weight:600">جاري إرسال الطلب… يرجى الانتظار</div>
+  </div>
+</div>
+  <!-- شريط المستخدم -->
+  <header id="userBar" class="hidden" style="background:#fff;border-bottom:1px solid var(--border);">
+    <div class="container" style="padding:14px 20px;display:flex;gap:12px;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:12px">
+        <strong>نظام إدارة السلامة والصحة المهنية</strong>
+        <span class="status-badge status-progress">🦺 مسار السلامة</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span>المستخدم: <strong id="userName">—</strong></span>
+        <span class="status-badge status-progress" id="userRole">—</span>
+        <button class="btn-secondary" onclick="logout()">تسجيل الخروج</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- مؤشر المزامنة -->
+  <div id="syncIndicator" class="loading-screen" style="display:none">
+    <div class="sync-box" style="background:#fff;padding:10px 16px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.15);font-weight:600">
+      <span id="syncText">جاري المزامنة…</span>
+    </div>
+  </div>
+
+  <!-- شاشة الدخول -->
+  <section id="loginScreen" class="container" style="padding:30px;margin-top:40px">
+    <h2 style="margin-bottom:10px">تسجيل الدخول لمسار السلامة</h2>
+    <p style="color:var(--muted);margin-bottom:16px">أدخل بياناتك للمتابعة. (يُعيَّن الدور تلقائيًا إلى <b>مسؤول السلامة</b> في هذه الصفحة)</p>
+    <form id="loginForm" style="display:grid;grid-template-columns:repeat(12,1fr);gap:14px;align-items:end">
+        <!-- ✅ صحيحة: طابق IDs التي يقرأها auth.js -->
+        <div style="grid-column:span 4">
+          <label for="loginEmployeeId">الرقم الوظيفي</label>
+          <input type="text" id="loginEmployeeId" required style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px">
+        </div>
+
+        <div style="grid-column:span 4">
+          <label for="loginPassword">كلمة المرور</label>
+          <input type="password" id="loginPassword" required style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px">
+        </div>
+
+        <div style="grid-column:span 4">
+          <button id="loginBtn" class="btn-primary" type="submit">دخول</button>
+        </div>
+
+    </form>
+  </section>
+
+  <!-- المحتوى الرئيسي -->
+  <main id="mainContainer" class="container hidden" style="padding:20px;margin-top:20px">
+
+    <!-- تبويبات -->
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button class="btn-primary nav-tab active" onclick="void(0)" data-target="tab-new">➕ بلاغ جديد</button>
+      <button class="btn-secondary nav-tab" onclick="void(0)" data-target="tab-list">📋 بلاغاتي</button>
+      <button class="btn-secondary nav-tab" onclick="void(0)" data-target="tab-help">ℹ️ مسار العمل</button>
+    </div>
+
+    <!-- تبويب: بلاغ جديد -->
+    <section id="tab-new" class="tab-content" style="display:block">
+      <h2 style="margin:8px 0 14px">تسجيل بلاغ سلامة جديد</h2>
+
+      <div id="newRequestAlert" class="status-badge status-progress" style="display:none;margin-bottom:12px"></div>
+
+      <form id="newRequestForm" style="display:grid;grid-template-columns:repeat(12,1fr);gap:14px">
+        <!-- معلومات أساسية -->
+        <div style="grid-column:span 3">
+          <label>نوع البلاغ</label>
+          <select name="requestType" required style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px">
+            <option value="بلاغ سلامة">بلاغ سلامة</option>
+            <option value="ملاحظة بيئية">ملاحظة بيئية</option>
+          </select>
+        </div>
+
+        <div style="grid-column:span 3">
+          <label>المبنى</label>
+          <input name="building" required placeholder="A / B / C ..." style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px"/>
+        </div>
+
+        <div style="grid-column:span 3">
+          <label>التصنيف</label>
+          <select name="maintenanceType" required style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px">
+            <option value="سلامة عامة">سلامة عامة</option>
+            <option value="سلامة كهربائية">سلامة كهربائية</option>
+            <option value="معدات إطفاء">معدات إطفاء</option>
+            <option value="مخارج طوارئ">مخارج طوارئ</option>
+            <option value="أخرى">أخرى</option>
+          </select>
+        </div>
+
+        <div style="grid-column:span 3">
+          <label>اسم المبلِّغ</label>
+          <input name="requesterName" id="requesterName" required placeholder="اسمك" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px"/>
+        </div>
+
+        <!-- التاريخ/الوقت والهجري/اليوم -->
+        <div style="grid-column:span 3">
+          <label>التاريخ (ميلادي)</label>
+          <input type="date" id="requestDate" name="requestDate" required style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px"/>
+        </div>
+        <div style="grid-column:span 3">
+          <label>الوقت</label>
+          <input type="text" id="requestTime" name="requestTime" required placeholder="HH:MM" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px"/>
+        </div>
+        <div style="grid-column:span 3">
+          <label>التاريخ (هجري)</label>
+          <input type="text" id="hijriDate" name="hijriDate" readonly style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;background:#f9fafb"/>
+        </div>
+        <div style="grid-column:span 3">
+          <label>اليوم</label>
+          <input type="text" id="requestDay" name="requestDay" readonly style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;background:#f9fafb"/>
+        </div>
+
+        <!-- نوع الحالة/الوصف -->
+        <div style="grid-column:span 3">
+          <label>نوع الحالة/الملاحظة</label>
+          <select name="faultType" id="faultType" required style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px">
+            <option value="طفاية ناقصة">طفاية ناقصة</option>
+            <option value="مخرج طوارئ مغلق">مخرج طوارئ مغلق</option>
+            <option value="أسلاك مكشوفة">أسلاك مكشوفة</option>
+            <option value="أخرى">أخرى</option>
+          </select>
+        </div>
+        <div style="grid-column:span 3">
+          <label>حدد "أخرى" إن لزم</label>
+          <input name="otherFault" id="otherFault" placeholder="اكتب النوع" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px"/>
+        </div>
+        <div style="grid-column:span 12">
+          <label>وصف الحالة</label>
+          <textarea name="faultDescription" required rows="4" placeholder="اشرح الملاحظة باختصار (10 أحرف على الأقل)" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px"></textarea>
+        </div>
+
+        <!-- صورة اختيارية -->
+        <div style="grid-column:span 6">
+          <label>📷 صورة (اختياري)</label>
+          <input type="file" id="imageUpload" accept="image/*" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;background:#fff"/>
+          <small style="color:var(--muted)">تُحفظ مؤقتًا محليًا (Base64) ثم تُزامن مع الشيت.</small>
+        </div>
+
+        <!-- إجراءات -->
+        <div style="grid-column:span 12;display:flex;gap:10px;justify-content:flex-end">
+          <button type="reset" class="btn-secondary">تفريغ</button>
+          <button type="submit" class="btn-primary">إرسال البلاغ</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- تبويب: قائمة البلاغات -->
+    <section id="tab-list" class="tab-content" style="display:none">
+      <h2 style="margin:8px 0 14px">قائمة البلاغات</h2>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>الرقم</th>
+              <th>المبلِّغ</th>
+              <th>المبنى</th>
+              <th>التصنيف</th>
+              <th>نوع الحالة</th>
+              <th>التاريخ</th>
+              <th>الحالة</th>
+              <th>إجراءات</th>
+            </tr>
+          </thead>
+          <tbody id="requestsTbody"></tbody>
+        </table>
+      </div>
+
+      <div style="margin-top:10px;color:var(--muted);font-size:.95rem">
+        ملاحظة: زر <b>مراجعة المشرف</b> يفتح مرحلة السلامة المناسبة (أولية/نهائية) تلقائيًا حسب حالة البلاغ.
+      </div>
+    </section>
+
+    <!-- تبويب: شرح مسار العمل -->
+    <section id="tab-help" class="tab-content" style="display:none">
+      <h2 style="margin:8px 0 14px">آلية مسار السلامة</h2>
+      <ol style="padding:0 18px;color:var(--text);line-height:1.9">
+        <li>تسجيل بلاغ من الصفحة الحالية (المصدر: <b>سلامة</b>، حالة ابتدائية: <b>بانتظار السلامة (أولية)</b>).</li>
+        <li>مراجعة السلامة (أولية): 
+          <ul style="margin-top:6px">
+            <li>اعتماد أولي أو الحاجة لإجراءات → ينتقل لاحقًا للنهائية.</li>
+            <li>تحويل للصيانة → يتجه إلى مشرف الصيانة والفني ثم يعود للسلامة.</li>
+            <li>رفض البلاغ إن لزم.</li>
+          </ul>
+        </li>
+        <li>مراجعة السلامة (نهائية):
+          <ul style="margin-top:6px">
+            <li>اعتماد نهائي (مع/بدون ملاحظات).</li>
+            <li>تمت المعالجة من قبل السلامة → يرسل مباشرة لتقييم صاحب الطلب.</li>
+          </ul>
+        </li>
+        <li>تقييم صاحب الطلب → إغلاق البلاغ (مكتمل).</li>
+      </ol>
+    </section>
+
+  </main>
+
+  <!-- تفعيل التبويبات -->
+  <script>
+    document.addEventListener('click', (e)=>{
+      const btn = e.target.closest('.nav-tab'); if(!btn) return;
+      const targetId = btn.dataset.target;
+      document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.tab-content').forEach(sec=>sec.style.display='none');
+      document.getElementById(targetId).style.display='block';
+    });
+  </script>
+
+  <!-- نقطة البداية للتطبيق (ينشئ المودالات ويربط النماذج) -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

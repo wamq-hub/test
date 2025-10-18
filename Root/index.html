@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>نظام إدارة الصيانة | الصفحة الرئيسية</title>
+
+  <!-- أنماط المشروع الموحدة -->
+  <link rel="stylesheet" href="css/main.css"/>
+  <link rel="stylesheet" href="css/components.css"/>
+  <link rel="stylesheet" href="css/responsive.css"/>
+
+  <style>
+    /* تنسيقات خفيفة خاصة بصفحة الهبوط فقط */
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 40px 20px;
+    }
+    .hero-inner {
+      width: 100%;
+      max-width: 1100px;
+      background: var(--card);
+      border-radius: 24px;
+      padding: 32px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    }
+    .brand {
+      display: flex; align-items: center; gap: 16px; margin-bottom: 18px;
+    }
+    .brand .logo {
+      width: 56px; height: 56px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--tvtc-primary), var(--tvtc-secondary));
+      display: grid; place-items: center; color: #fff; font-weight: 800;
+    }
+    .brand h1 { font-size: 1.4rem; color: var(--text); }
+    .brand p { color: var(--muted); margin-top: 4px; font-size: .95rem; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 16px;
+      margin-top: 22px;
+    }
+    .card {
+      grid-column: span 12;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      transition: .2s;
+      background: #fff;
+    }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,0,0,.1); }
+    .card h3 { margin-bottom: 8px; }
+    .card p { color: var(--muted); margin-bottom: 14px; }
+    .card .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 12px; border-radius: 999px; font-weight: 600; font-size: .9rem;
+    }
+    .src-safety { background: #FFF7ED; color: #B45309; border: 1px solid #F59E0B33; }
+    .src-maint  { background: #ECFDF5; color: #065F46; border: 1px solid #10B98133; }
+    .src-it     { background: #EFF6FF; color: #1E40AF; border: 1px solid #3B82F633; }
+
+    @media (min-width: 768px){
+      .card { grid-column: span 6; }
+    }
+  </style>
+</head>
+<body>
+
+  <main class="hero">
+    <section class="hero-inner">
+      <div class="brand">
+        <div class="logo">TVTC</div>
+        <div>
+          <h1>نظام إدارة الصيانة — الصفحة الرئيسية</h1>
+          <p>اختر نوع الطلب أو الصفحة المناسبة للمتابعة.</p>
+        </div>
+      </div>
+
+      <div class="grid">
+
+        <!-- بطاقة الصيانة -->
+        <article class="card">
+          <span class="badge src-maint">🛠️ مسار الصيانة</span>
+          <h3>طلبات الصيانة</h3>
+          <p>إنشاء ومتابعة طلبات الصيانة — المشرف يعين الفني، ثم تقرير الفني، فالتحقق والاعتماد، وأخيرًا تقييم صاحب الطلب.</p>
+          <div class="actions">
+            <a class="btn-primary" href="maintenance.html">دخول صفحة الصيانة</a>
+            <a class="btn-secondary" href="templates/maintenance_template.xlsx" download>تنزيل قالب التصدير (Excel)</a>
+          </div>
+        </article>
+
+        <!-- بطاقة السلامة -->
+        <article class="card">
+          <span class="badge src-safety">🦺 مسار السلامة</span>
+          <h3>السلامة والصحة المهنية</h3>
+          <p>البلاغات تذهب لمسؤول السلامة: مراجعة أولية ← (تحويل للصيانة عند الحاجة) ← مراجعة نهائية ← تقييم العميل.</p>
+          <div class="actions">
+            <a class="btn-primary" href="safety_system.html">دخول صفحة السلامة</a>
+          </div>
+        </article>
+
+        <!-- بطاقة الدعم الفني (اختياري لاحقًا) -->
+        <article class="card">
+          <span class="badge src-it">💻 مسار الدعم الفني</span>
+          <h3>الدعم الفني (تقنية المعلومات)</h3>
+          <p>المسار: رئيس القسم ← تقنية المعلومات ← رئيس القسم ← تقييم صاحب الطلب.</p>
+          <div class="actions">
+            <button class="btn-secondary" disabled title="سيتم تفعيله لاحقًا">سيُفعَّل قريبًا</button>
+          </div>
+        </article>
+
+      </div>
+
+      <hr style="margin:24px 0; border:0; border-top:1px solid var(--border)" />
+
+      <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end">
+        <a class="btn-secondary" href="config.json" target="_blank" rel="noopener">عرض ملف الإعدادات</a>
+        <a class="btn-secondary" href="templates/maintenance_template.xlsx" download>قالب الصيانة (Excel)</a>
+      </div>
+    </section>
+  </main>
+
+</body>
+</html>

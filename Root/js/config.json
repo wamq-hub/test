@@ -1,0 +1,77 @@
+{
+  "appName": "نظام إدارة الصيانة",
+  "version": "1.0.0",
+  "environment": "production",
+
+  "theme": {
+    "primaryColor": "#006341",
+    "secondaryColor": "#C8A55C",
+    "accentColor": "#00A287"
+  },
+
+  "googleSheets": {
+    "appsScriptUrl": "https://script.google.com/macros/s/AKfycbzkB8AzULd5utKDUjlnoxMhzwZWEUV6vw35TabHrN5Ql4KZIuhpgmu8L26tU32c6Dcp/exec"
+  },
+
+  "features": {
+    "optimisticCreate": true,
+    "backgroundSync": true,
+    "allowClientAttachments": true,
+    "allowSafetyFinalImage": true
+  },
+
+  "pages": {
+    "maintenance": {
+      "title": "مسار الصيانة",
+      "prefix": "M-",
+      "source": "صيانة"
+    },
+    "safety": {
+      "title": "مسار السلامة",
+      "prefix": "S-",
+      "source": "سلامة"
+    },
+    "it": {
+      "title": "مسار الدعم الفني",
+      "prefix": "I-",
+      "source": "دعم فني",
+      "enabled": false
+    }
+  },
+
+  "roles": [
+    "وكيل ضبط الجودة",
+    "مشرف الصيانة",
+    "فني الصيانة",
+    "مسؤول السلامة",
+    "موظف",
+    "العميد",
+    "رئيس القسم",
+    "تقنية المعلومات"
+  ],
+
+  "statusMap": {
+    "WAIT_SUP": "بانتظار المشرف",
+    "ASSIGNED": "محوّل للفني",
+    "TECH_REVIEW": "جاري المراجعة",
+    "NEEDS_REVIEW": "يحتاج مراجعة",
+    "APPROVED": "معتمد",
+    "COMPLETED": "مكتمل",
+    "REJECTED": "مرفوض",
+    "NOT_FIXED": "غير مكتمل",
+    "CANCELED": "ملغي",
+    "DELETED": "محذوف",
+
+    "WAIT_SAFETY_1": "بانتظار السلامة (أولية)",
+    "SAFETY_APPROVED_1": "معتمد من السلامة (أولية)",
+    "WAIT_SAFETY_2": "بانتظار السلامة (نهائية)",
+    "SAFETY_APPROVED_2": "معتمد من السلامة (نهائية)"
+  },
+
+  "actions": {
+    "getRequests": { "method": "POST" },
+    "addRequest": { "method": "POST" },
+    "updateRequest": { "method": "POST" },
+    "softDeleteRequest": { "method": "POST" }
+  }
+}

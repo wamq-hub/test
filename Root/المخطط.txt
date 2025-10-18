@@ -1,0 +1,173 @@
+maintenance-system/ ├── index.html ├── config.json ├── css/ │ ├── main.css │ ├── components.css │ └── responsive.css ├── js/ │ ├── app.js (نقطة البداية) │ ├── config.js │ ├── auth.js │ ├── workflows/ │ │ ├── it-workflow.js (مسار الدعم الفني) │ │ ├── maintenance-workflow.js (مسار الصيانة) │ │ └── safety-workflow.js (مسار السلامة) │ ├── services/ │ │ ├── sheets-service.js │ │ ├── sync-service.js │ │ └── storage-service.js │ ├── components/ │ │ ├── modals.js │ │ ├── tables.js │ │ └── forms.js │ └── utils/ │ ├── helpers.js │ ├── validators.js │ └── converters.js └── templates/ └── maintenance_template.xlsx
+
+
+الصفحات
+
+index.html
+
+صفحة هبوط بسيطة لتوجيهك إلى صفحات “الصيانة/السلامة/IT”.
+
+روابط إلى القالب Excel وملف الإعدادات.
+
+maintenance.html
+
+واجهة مسار الصيانة: شاشة دخول، نموذج جديد، قائمة الطلبات.
+
+IDs مهمة:
+#loginForm, #employeeId, #password, #mainContainer, #userBar, #userName, #userRole, #newRequestForm, #imageUpload, #requestsTbody, #newRequestAlert
+
+safety_system.html
+
+واجهة مسار السلامة: مثل الصيانة + تبويب شرح المسار.
+
+IDs مهمة إضافية: #safetyFinalImage
+
+نقطة البداية والإعداد
+
+js/app.js
+
+يحمّل config.json، يجهّز الدخول، يقرر أي مسار يشتغل (maintenance/safety/it).
+
+يوفّر window.logout() ويعرض مؤشر المزامنة عند الحاجة.
+
+js/config.js
+
+loadConfig() لتحميل config.json مرّة واحدة وتخزينه.
+
+applyTheme() لتطبيق ألوان الواجهة.
+
+getAppsScriptUrl() لاسترجاع رابط GAS.
+
+updateConfigPatch() لتعديل الإعدادات أثناء التشغيل (اختياري).
+
+المسارات (Business Logic)
+
+js/workflows/maintenance-workflow.js
+
+يربط نموذج الصيانة الجديد، مودال تقرير الفني، مودال المشرف، مودال التقييم.
+
+يرندر الجدول ويحدّث الحالات:
+
+جديد → WAIT_SUP
+
+تقرير فني → TECH_REVIEW (مع صورة إلزامية)
+
+المشرف: ASSIGNED/APPROVED/NEEDS_REVIEW/REJECTED
+
+تقييم العميل → COMPLETED
+
+js/workflows/safety-workflow.js
+
+يربط نموذج السلامة، مراجعة أولية/نهائية، وتقييم العميل.
+
+حالات:
+
+جديد → WAIT_SAFETY_1
+
+أولية: SAFETY_APPROVED_1 أو تحويل للصيانة (WAIT_SUP / owner=صيانة) أو REJECTED
+
+نهائية: SAFETY_APPROVED_2 (ويمكن إرسال مباشر للتقييم) أو NEEDS_REVIEW
+
+تقييم → COMPLETED
+
+js/workflows/it-workflow.js (اختياري لاحقًا)
+
+رئيس القسم → تقنية المعلومات → رئيس القسم → تقييم.
+
+الخدمات (الاتصال والتخزين والمزامنة)
+
+js/services/sheets-service.js
+
+غلاف اتصال بـ GAS Web App باستخدام fetch:
+
+getRequests(), addRequest(model), updateRequest(model), softDeleteRequest(id)
+
+js/services/sync-service.js
+
+طابور مزامنة محلي (LocalStorage) مع 3 محاولات وتأخير تزايدي.
+
+ينفّذ عمليات add/update/delete عبر sheets-service.
+
+يعيد المحاولة عند عودة الاتصال (online) وتنشيط التبويب (visibilitychange).
+
+js/services/storage-service.js
+
+loadRequests()/saveRequests() لتخزين الطلبات محليًا.
+
+getCurrentUser()/setCurrentUser()/clearCurrentUser() لإدارة الجلسة.
+
+أدوات إضافية: upsertRequestLocal(), طابع lastSyncAt.
+
+المكوّنات (UI قابلة لإعادة الاستخدام)
+
+js/components/modals.js
+
+ينشئ DOM لمودالات:
+
+تقرير الفني (صيانة)
+
+مراجعة المشرف (صيانة)
+
+مراجعة السلامة (أولية/نهائية)
+
+تقييم العميل (مشترك)
+
+js/components/tables.js
+
+renderSimpleTable() لبناء صفوف الجدول مع عمود إجراءات موحّد.
+
+wireTableActions() لربط أزرار: تقرير الفني / مراجعة المشرف / تقييم العميل.
+
+hideActionsWhere() لإخفاء الأزرار بشرط معيّن (اختياري).
+
+js/components/forms.js
+
+setCurrentDateTime() يعبّي التاريخ/الوقت/الهجري/اليوم.
+
+wireTabs() تبديل تبويبات بسيط إن رغبت.
+
+wireImageUpload(selector, key) يحوّل الملف إلى Base64 ويخزّنه في window[key].
+
+الأدوات (Utilities)
+
+js/utils/helpers.js
+
+ثوابت ROLES/STATUS، تحويل هجري تقريبي للعرض toHijri().
+
+getArabicDay(), generateId(prefix), getStatusClass().
+
+showSyncIndicator(state,text) لإظهار حالة المزامنة.
+
+js/utils/validators.js
+
+تحقّق النماذج: validateNewRequest() ونسخ مخصصة لتقرير الفني/المشرف/التقييم.
+
+js/utils/converters.js
+
+normalizeStatusFromSheet() لتبسيط نصوص حالات السلامة الطويلة من الشيت.
+
+mapSheetRowToModel()/mapUiToModel()/mapModelToSheet() للتحويل بين النماذج.
+
+CSS (التصميم)
+
+css/main.css
+
+الثيم والمتغيرات والأُسس (أزرار، جداول، مودالات، شارات، مؤشّر مزامنة).
+
+css/components.css
+
+تفاصيل المكوّنات: أزرار، بطاقات، تبويبات، تحسينات للجداول، مجموعات الإدخال.
+
+css/responsive.css
+
+قواعد تجاوبية (تلوين/شبكات/أحجام على التابلت والجوال).
+
+الإعدادات والقوالب
+
+config.json
+
+اسم التطبيق، الثيم، رابط GAS في googleSheets.appsScriptUrl، خريطة الحالات، تفعيل خصائص.
+
+templates/maintenance_template.xlsx
+
+قالب Excel للتصدير/الطباعة (جاهز عندك).

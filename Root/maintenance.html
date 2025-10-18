@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>نظام إدارة الصيانة | مسار الصيانة</title>
+
+  <!-- أنماط المشروع الموحدة -->
+  <link rel="stylesheet" href="css/main.css"/>
+  <link rel="stylesheet" href="css/components.css"/>
+  <link rel="stylesheet" href="css/responsive.css"/>
+
+<style>
+@keyframes spin {to{transform:rotate(360deg)}}
+</style>
+
+</head>
+<body data-page="maintenance">
+  <!-- شاشة حجب كاملة أثناء الإرسال -->
+<div id="blockingOverlay" style="
+  position:fixed; inset:0; background:rgba(0,0,0,.5);
+  display:none; align-items:center; justify-content:center; z-index:9999">
+  <div style="background:#fff; padding:22px 26px; border-radius:14px; min-width:260px; text-align:center; box-shadow:0 10px 40px rgba(0,0,0,.25)">
+    <div class="spinner" style="
+      width:40px; height:40px; margin:0 auto 12px; border:4px solid #e5e7eb; border-top-color:#667eea; border-radius:50%; animation:spin 1s linear infinite;"></div>
+    <div id="blockingOverlayText" style="font-weight:600">جاري إرسال الطلب… يرجى الانتظار</div>
+  </div>
+</div>
+  <!-- شريط المستخدم -->
+  <header id="userBar" class="hidden" style="background:#fff;border-bottom:1px solid var(--border);">
+    <div class="container" style="padding:14px 20px;display:flex;gap:12px;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:12px">
+        <strong>نظام إدارة الصيانة</strong>
+        <span class="status-badge status-progress">🛠️ مسار الصيانة</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span>المستخدم: <strong id="userName">—</strong></span>
+        <span class="status-badge status-progress" id="userRole">—</span>
+        <button class="btn-secondary" id="logoutBtn">تسجيل الخروج</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- مؤشر المزامنة -->
+  <div id="syncIndicator" class="loading-screen" style="display:none">
+    <div class="sync-box" style="background:#fff;padding:10px 16px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.15);font-weight:600">
+      <span id="syncText">جاري المزامنة…</span>
+    </div>
+  </div>
+
+  <!-- شاشة الدخول -->
+  <section id="loginScreen" class="container" style="padding:30px;margin-top:40px">
+    <h2 style="margin-bottom:10px">تسجيل الدخول</h2>
+    <p style="color:var(--muted);margin-bottom:16px">أدخل بياناتك للمتابعة إلى مسار الصيانة.</p>
+    <form id="loginForm" style="display:grid;grid-template-columns:repeat(12,1fr);gap:14px;align-items:end">
+        <!-- ✅ صحيحة: طابق IDs التي يقرأها auth.js -->
+        <div style="grid-column:span 4">
+          <label for="loginEmployeeId">الرقم الوظيفي</label>
+          <input type="text" id="loginEmployeeId" required style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px">
+        </div>
+
+        <div style="grid-column:span 4">
+          <label for="loginPassword">كلمة المرور</label>
+          <input type="password" id="loginPassword" required style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px">
+        </div>
+
+        <div style="grid-column:span 4">
+          <button id="loginBtn" class="btn-primary" type="submit">دخول</button>
+        </div>
+    </form>
+  </section>
+
+  <!-- المحتوى الرئيسي -->
+  <main id="mainContainer" class="container hidden" style="padding:20px;margin-top:20px">
+
+    <!-- تبويبات -->
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button class="btn-primary nav-tab" onclick="void(0)" data-target="tab-new">➕ طلب جديد</button>
+      <button class="btn-secondary nav-tab" onclick="void(0)" data-target="tab-list">📋 طلباتي</button>
+      <button class="btn-secondary nav-tab" data-target="tab-quality" style="display:none">📊 تقارير الجودة</button>
+    </div>
+
+    <!-- تبويب: طلب جديد -->
+    <section id="tab-new" class="tab-content active" style="display:block">
+      <h2 style="margin:8px 0 14px">إنشاء طلب صيانة جديد</h2>
+
+      <div id="newRequestAlert" class="status-badge status-progress" style="display:none;margin-bottom:12px"></div>
+
+      <form id="newRequestForm" style="display:grid;grid-template-columns:repeat(12,1fr);gap:14px">
+        <!-- معلومات أساسية -->
+        <div style="grid-column:span 3">
+          <label>نوع الطلب</label>
+          <select name="requestType" required style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px">
+            <option value="بلاغ صيانة">بلاغ صيانة</option>
+            <option value="طلب مواد">طلب مواد</option>
+          </select>
+        </div>
+
+        <div style="grid-column:span 3">
+          <label>المبنى</label>
+          <input name="building" required placeholder="A / B / C ..." style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px"/>
+        </div>
+
+        <div style="grid-column:span 3">
+          <label>التصنيف</label>
+          <select name="maintenanceType" required style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px">
+            <option value="كهرباء">كهرباء</option>
+            <option value="ميكانيكا">ميكانيكا</option>
+            <option value="تمديدات صحية">تمديدات صحية</option>
+            <option value="نجارة">نجارة</option>
+            <option value="أخرى">أخرى</option>
+          </select>
+        </div>
+
+        <div style="grid-column:span 3">
+          <input id="requesterName" name="requesterName" type="text" placeholder="اسم صاحب الطلب" />
+        </div>
+
+        <!-- التاريخ/الوقت والهجري/اليوم -->
+        <div style="grid-column:span 3">
+          <label>التاريخ (ميلادي)</label>
+          <input type="date" id="requestDate" name="requestDate" required style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px"/>
+        </div>
+        <div style="grid-column:span 3">
+          <label>الوقت</label>
+          <input type="text" id="requestTime" name="requestTime" required placeholder="HH:MM" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px"/>
+        </div>
+        <div style="grid-column:span 3">
+          <label>التاريخ (هجري)</label>
+          <input type="text" id="hijriDate" name="hijriDate" readonly style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;background:#f9fafb"/>
+        </div>
+        <div style="grid-column:span 3">
+          <label>اليوم</label>
+          <input type="text" id="requestDay" name="requestDay" readonly style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;background:#f9fafb"/>
+        </div>
+
+        <!-- نوع العطل/الوصف -->
+        <div style="grid-column:span 3">
+          <label>نوع العطل/الملاحظة</label>
+          <select name="faultType" id="faultType" required style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px">
+            <option value="انقطاع كهرباء">انقطاع كهرباء</option>
+            <option value="تسرّب ماء">تسرّب ماء</option>
+            <option value="عطل تكييف">عطل تكييف</option>
+            <option value="أخرى">أخرى</option>
+          </select>
+        </div>
+        <div style="grid-column:span 3">
+          <label>حدد "أخرى" إن لزم</label>
+          <input name="otherFault" id="otherFault" placeholder="اكتب النوع" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px"/>
+        </div>
+        <div style="grid-column:span 12">
+          <label>وصف العطل</label>
+          <textarea name="faultDescription" required rows="4" placeholder="اشرح المشكلة باختصار (10 أحرف على الأقل)" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px"></textarea>
+        </div>
+
+        <!-- صورة اختيارية -->
+        <div style="grid-column:span 6">
+          <label>📷 صورة (اختياري)</label>
+          <input type="file" id="imageUpload" accept="image/*" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;background:#fff"/>
+          <small style="color:var(--muted)">سيتم حفظها مؤقتًا محليًا (Base64) ثم تُرفع عبر المزامنة.</small>
+        </div>
+
+        <!-- إجراءات -->
+        <div style="grid-column:span 12;display:flex;gap:10px;justify-content:flex-end">
+          <button type="reset" class="btn-secondary">تفريغ</button>
+            <!-- Tab wiring is handled centrally in js/app.js -> wireTabs() to avoid duplicate listeners -->
+      <div>
+        <label>التقييم</label>
+        <div id="rateStars" style="display:flex; gap:6px; font-size:24px; cursor:pointer" aria-label="اختر تقييم من 1 إلى 5">
+          <span data-v="1">☆</span><span data-v="2">☆</span><span data-v="3">☆</span><span data-v="4">☆</span><span data-v="5">☆</span>
+        </div>
+        <input type="hidden" id="rateValue" value="0" />
+      </div>
+      <div>
+        <label>ملاحظات العميل (اختياري)</label>
+        <textarea id="rateNotes" rows="3" placeholder="كيف كانت الخدمة؟" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:10px"></textarea>
+      </div>
+      <div style="display:flex; gap:10px; justify-content:flex-end">
+        <button type="button" id="rateCancelBtn" class="btn-secondary">إلغاء</button>
+        <button type="submit" class="btn-primary">حفظ التقييم</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<section id="tab-quality" class="tab-content" style="display:none">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <h2 style="margin:8px 0 14px">تقارير الجودة</h2>
+    <div>
+      <button id="btnExportQuality" class="btn-primary">⬇️ تصدير Excel (CSV)</button>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>رقم الطلب</th>
+          <th>نوع الطلب</th>
+          <th>المبنى</th>
+          <th>نوع الصيانة</th>
+          <th>اسم صاحب الطلب</th>
+          <th>التاريخ</th>
+          <th>الحالة</th>
+          <th>اسم الفني</th>
+          <th>اسم المشرف</th>
+          <th>مصدر الطلب</th>
+        </tr>
+      </thead>
+      <tbody id="qualityTbody"></tbody>
+    </table>
+  </div>
+
+  <div id="qualityNoData" style="display:none;color:var(--muted);margin-top:10px">لا توجد بيانات</div>
+</section>
+
+
+  </main>
+
+<!-- Tab wiring is handled centrally in js/app.js -> wireTabs() to avoid duplicate listeners -->
+  <!-- نقطة البداية للتطبيق -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

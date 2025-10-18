@@ -1,0 +1,63 @@
+/* ===========================
+   Responsive Rules
+   =========================== */
+
+/* Base container spacing on small screens */
+@media (max-width: 1280px){
+  .container{ margin: 18px auto; }
+}
+
+/* Tablets */
+@media (max-width: 992px){
+  /* Forms: collapse to 2 columns */
+  .form-row{ grid-template-columns: repeat(12, 1fr); }
+  .form-col-6{ grid-column: span 12; }
+  .form-col-4{ grid-column: span 6; }
+  .form-col-3{ grid-column: span 6; }
+  .form-col-2{ grid-column: span 6; }
+
+  /* Table font size */
+  table{ font-size: .95rem; }
+  th, td{ padding: 12px 10px; }
+
+  /* User bar stack */
+  #userBar .container{ padding: 12px 16px !important; }
+}
+
+/* Mobiles */
+@media (max-width: 768px){
+  .container{ margin: 12px; border-radius: 14px; }
+  .section{ padding: 14px; }
+
+  /* Buttons wrap */
+  .btn-primary, .btn-secondary{ width: 100%; justify-content: center; }
+  .actions .btn-primary, .actions .btn-secondary{ width: auto; }
+
+  /* Forms: single column */
+  form{ grid-template-columns: 1fr !important; }
+  .form-col-6, .form-col-4, .form-col-3, .form-col-2{ grid-column: span 12; }
+
+  /* Inputs spacing */
+  input, select, textarea{ padding: 10px; }
+
+  /* Tables: scroll & smaller padding */
+  .table-container{ border-radius: 10px; }
+  table{ font-size: .9rem; }
+  th, td{ padding: 10px 8px; }
+  thead th{ white-space: nowrap; }
+
+  /* Modals */
+  .modal-content{ padding: 16px; border-radius: 14px; }
+
+  /* Hide some action labels, show icons if you add them later */
+  td .action-buttons{ gap:6px; }
+}
+
+/* Very small phones */
+@media (max-width: 420px){
+  body{ font-size: 14px; }
+  h1{ font-size: 1.4rem; }
+  h2{ font-size: 1.2rem; }
+  .status-badge{ padding: 5px 10px; font-size: .8rem; }
+  .btn-primary, .btn-secondary{ padding: 10px 14px; }
+}
